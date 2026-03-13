@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafePass — School Pickup & Drop-off</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --navy: #0f1f3d;
+    --navy-light: #1a2f52;
+    --gold: #f5a623;
+    --gold-light: #ffd280;
+    --mint: #34d399;
+    --rose: #f87171;
+    --sky: #60a5fa;
+    --cream: #fdf8f0;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --card: #ffffff;
+    --shadow: 0 4px 24px rgba(15,31,61,0.10);
+    --shadow-lg: 0 8px 40px rgba(15,31,61,0.16);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── LANDING ── */
+  #landing {
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  #landing::before {
+    content:'';
+    position:absolute;
+    top:-120px; right:-80px;
+    width:400px; height:400px;
+    background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  #landing::after {
+    content:'';
+    position:absolute;
+    bottom:-80px; left:-60px;
+    width:300px; height:300px;
+    background: radial-gradient(circle, rgba(52,211,153,0.12) 0%, transparent 70%);
+    border-radius:50%;
+  }
+  .logo-mark {
+    width: 72px; height: 72px;
+    background: var(--gold);
+    border-radius: 20px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:32px;
+    margin-bottom:24px;
+    box-shadow: 0 0 0 12px rgba(245,166,35,0.15);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100%{ box-shadow: 0 0 0 12px rgba(245,166,35,0.15); }
+    50%{ box-shadow: 0 0 0 20px rgba(245,166,35,0.05); }
+  }
+  .app-title {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .app-sub {
+    color: rgba(255,255,255,0.55);
+    font-size: 15px;
+    margin-bottom: 56px;
+    text-align:center;
+  }
+  .role-cards {
+    display:flex; flex-direction:column; gap:16px; width:100%; max-width:340px;
+  }
+  .role-card {
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius:18px;
+    padding: 22px 24px;
+    display:flex; align-items:center; gap:18px;
+    cursor:pointer;
+    transition: all 0.22s ease;
+    backdrop-filter: blur(8px);
+  }
+  .role-card:hover, .role-card:active {
+    background: rgba(255,255,255,0.13);
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+  .role-icon {
+    width:48px; height:48px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+  }
+  .role-icon.staff { background: rgba(245,166,35,0.2); }
+  .role-icon.parent { background: rgba(52,211,153,0.2); }
+  .role-info h3 { color:#fff; font-size:17px; font-weight:600; }
+  .role-info p { color:rgba(255,255,255,0.5); font-size:13px; margin-top:3px; }
+  .role-arrow { margin-left:auto; color:rgba(255,255,255,0.35); font-size:20px; }
+
+  /* ── SHARED NAV ── */
+  .top-nav {
+    background: var(--navy);
+    color:#fff;
+    padding: 16px 20px;
+    display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; z-index:100;
+    box-shadow: 0 2px 12px rgba(15,31,61,0.2);
+  }
+  .back-btn {
+    width:36px; height:36px; border-radius:10px;
+    background:rgba(255,255,255,0.1);
+    border:none; cursor:pointer; color:#fff;
+    font-size:18px; display:flex; align-items:center; justify-content:center;
+    transition: background 0.18s;
+  }
+  .back-btn:hover { background:rgba(255,255,255,0.18); }
+  .nav-title { font-family:'Fraunces',serif; font-size:20px; font-weight:700; }
+  .nav-badge {
+    margin-left:auto;
+    background: var(--gold);
+    color: var(--navy);
+    border-radius:20px;
+    padding:4px 12px;
+    font-size:12px; font-weight:700;
+    letter-spacing:0.3px;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display:none; min-height:100vh; }
+  .screen.active { display:block; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display:flex;
+    background:#fff;
+    border-bottom:2px solid var(--border);
+    position:sticky; top:68px; z-index:99;
+  }
+  .tab-btn {
+    flex:1; padding:14px 8px;
+    border:none; background:none; cursor:pointer;
+    font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600;
+    color:var(--muted);
+    border-bottom:3px solid transparent;
+    margin-bottom:-2px;
+    transition: all 0.18s;
+  }
+  .tab-btn.active { color:var(--navy); border-bottom-color:var(--gold); }
+
+  /* ── CONTENT ── */
+  .content { padding:20px 16px; max-width:520px; margin:0 auto; }
+  .section-label {
+    font-size:11px; font-weight:700; letter-spacing:1.2px;
+    color:var(--muted); text-transform:uppercase;
+    margin-bottom:12px; margin-top:24px;
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:8px; }
+  .stat-card {
+    background:var(--card);
+    border-radius:16px;
+    padding:16px 12px;
+    text-align:center;
+    box-shadow:var(--shadow);
+    border:1.5px solid var(--border);
+  }
+  .stat-num {
+    font-family:'Fraunces',serif;
+    font-size:28px; font-weight:900;
+    color:var(--navy);
+    line-height:1;
+  }
+  .stat-num.gold { color:var(--gold); }
+  .stat-num.mint { color:#059669; }
+  .stat-num.rose { color:#dc2626; }
+  .stat-label { font-size:11px; color:var(--muted); margin-top:5px; font-weight:500; }
+
+  /* ── QUEUE ITEMS ── */
+  .queue-list { display:flex; flex-direction:column; gap:10px; }
+  .queue-item {
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    border:1.5px solid var(--border);
+    display:flex; align-items:center; gap:14px;
+    transition: transform 0.18s, box-shadow 0.18s;
+    animation: slideIn 0.3s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateY(12px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  .queue-num {
+    width:40px; height:40px; border-radius:12px;
+    background:var(--navy); color:#fff;
+    font-family:'Fraunces',serif; font-size:18px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .queue-num.priority { background:var(--gold); color:var(--navy); }
+  .queue-info { flex:1; }
+  .queue-name { font-size:15px; font-weight:600; color:var(--text); }
+  .queue-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .queue-actions { display:flex; gap:8px; }
+  .q-btn {
+    width:34px; height:34px; border-radius:10px;
+    border:none; cursor:pointer; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+    transition: all 0.18s;
+  }
+  .q-btn.approve { background:#dcfce7; color:#16a34a; }
+  .q-btn.approve:hover { background:#16a34a; color:#fff; }
+  .q-btn.flag { background:#fef2f2; color:#dc2626; }
+  .q-btn.flag:hover { background:#dc2626; color:#fff; }
+  .status-pill {
+    padding:4px 10px; border-radius:20px;
+    font-size:11px; font-weight:700; letter-spacing:0.3px;
+  }
+  .status-pill.waiting { background:#fef3c7; color:#d97706; }
+  .status-pill.verified { background:#dcfce7; color:#16a34a; }
+  .status-pill.flagged { background:#fef2f2; color:#dc2626; }
+
+  /* ── NOTIFICATIONS ── */
+  .notif-list { display:flex; flex-direction:column; gap:10px; }
+  .notif-item {
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    border-left:4px solid var(--border);
+    animation: slideIn 0.3s ease both;
+  }
+  .notif-item.info { border-left-color:var(--sky); }
+  .notif-item.warn { border-left-color:var(--gold); }
+  .notif-item.success { border-left-color:var(--mint); }
+  .notif-item.danger { border-left-color:var(--rose); }
+  .notif-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .notif-icon { font-size:18px; }
+  .notif-title { font-size:14px; font-weight:600; color:var(--text); }
+  .notif-time { margin-left:auto; font-size:11px; color:var(--muted); }
+  .notif-body { font-size:13px; color:var(--muted); line-height:1.5; }
+  .notif-actions { display:flex; gap:8px; margin-top:12px; }
+  .notif-btn {
+    flex:1; padding:8px; border-radius:10px;
+    border:none; cursor:pointer; font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:600;
+    transition: all 0.18s;
+  }
+  .notif-btn.primary { background:var(--navy); color:#fff; }
+  .notif-btn.primary:hover { background:var(--navy-light); }
+  .notif-btn.secondary { background:var(--border); color:var(--muted); }
+  .notif-btn.secondary:hover { background:#d1d5db; }
+
+  /* ── SEARCH / FILTER ── */
+  .search-box {
+    display:flex; align-items:center; gap:10px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:14px;
+    padding:10px 14px;
+    margin-bottom:16px;
+    box-shadow:var(--shadow);
+  }
+  .search-box input {
+    flex:1; border:none; outline:none;
+    font-family:'DM Sans',sans-serif;
+    font-size:14px; color:var(--text);
+    background:transparent;
+  }
+  .search-box input::placeholder { color:var(--muted); }
+  .filter-chips { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+  .chip {
+    padding:6px 14px; border-radius:20px;
+    border:1.5px solid var(--border);
+    background:var(--card);
+    font-size:12px; font-weight:600; color:var(--muted);
+    cursor:pointer; white-space:nowrap;
+    transition: all 0.18s;
+  }
+  .chip.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  /* ── PARENT PORTAL ── */
+  .pass-card {
+    background: linear-gradient(135deg, var(--navy) 0%, #1e3a6e 100%);
+    border-radius:24px;
+    padding:28px 24px;
+    color:#fff;
+    box-shadow:var(--shadow-lg);
+    position:relative;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .pass-card::after {
+    content:'';
+    position:absolute;
+    top:-30px; right:-30px;
+    width:150px; height:150px;
+    background:rgba(245,166,35,0.15);
+    border-radius:50%;
+  }
+  .pass-label { font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; margin-bottom:16px; }
+  .pass-queue {
+    font-family:'Fraunces',serif;
+    font-size:72px; font-weight:900;
+    line-height:1; color:#fff;
+    margin-bottom:4px;
+  }
+  .pass-desc { color:rgba(255,255,255,0.6); font-size:14px; }
+  .pass-student { margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.15); }
+  .pass-student-name { font-size:18px; font-weight:700; }
+  .pass-student-grade { color:rgba(255,255,255,0.55); font-size:13px; }
+  .pass-id {
+    display:flex; align-items:center; gap:10px;
+    margin-top:16px;
+  }
+  .pass-id-code {
+    font-family:monospace; font-size:20px; letter-spacing:4px;
+    background:rgba(255,255,255,0.1);
+    padding:8px 14px; border-radius:10px;
+    color:var(--gold-light);
+  }
+  .pass-verified-badge {
+    background:rgba(52,211,153,0.2);
+    color:var(--mint);
+    border:1.5px solid rgba(52,211,153,0.4);
+    border-radius:20px;
+    padding:5px 12px;
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; gap:5px;
+  }
+  .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .action-card {
+    background:var(--card);
+    border:1.5px solid var(--border);
+    border-radius:18px;
+    padding:20px 16px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:all 0.2s;
+  }
+  .action-card:hover, .action-card:active {
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-lg);
+    border-color:var(--navy);
+  }
+  .action-card .icon { font-size:28px; margin-bottom:10px; }
+  .action-card h4 { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .action-card p { font-size:11px; color:var(--muted); }
+
+  /* ── STUDENT LIST PARENT ── */
+  .student-card {
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:var(--shadow);
+    border:1.5px solid var(--border);
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:10px;
+  }
+  .student-avatar {
+    width:44px; height:44px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; flex-shrink:0;
+  }
+  .student-info { flex:1; }
+  .student-info h4 { font-size:15px; font-weight:600; }
+  .student-info p { font-size:12px; color:var(--muted); margin-top:2px; }
+
+  /* ── ANNOUNCE MODAL ── */
+  .modal-overlay {
+    position:fixed; inset:0;
+    background:rgba(15,31,61,0.7);
+    backdrop-filter:blur(4px);
+    z-index:200;
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--cream);
+    border-radius:28px 28px 0 0;
+    padding:28px 20px 36px;
+    width:100%; max-width:520px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform:translateY(100px); opacity:0; }
+    to { transform:translateY(0); opacity:1; }
+  }
+  .modal-handle {
+    width:40px; height:4px;
+    background:var(--border);
+    border-radius:2px;
+    margin:0 auto 20px;
+  }
+  .modal h3 { font-family:'Fraunces',serif; font-size:22px; font-weight:700; margin-bottom:16px; }
+  .modal textarea {
+    width:100%; min-height:100px;
+    border:1.5px solid var(--border); border-radius:14px;
+    padding:14px; font-family:'DM Sans',sans-serif; font-size:14px;
+    color:var(--text); resize:none; outline:none;
+    background:#fff; margin-bottom:16px;
+    transition: border-color 0.18s;
+  }
+  .modal textarea:focus { border-color:var(--navy); }
+  .modal-type-row { display:flex; gap:10px; margin-bottom:20px; }
+  .type-chip {
+    flex:1; padding:10px; border-radius:12px;
+    border:1.5px solid var(--border);
+    background:#fff; cursor:pointer;
+    font-size:12px; font-weight:600; text-align:center; color:var(--muted);
+    transition:all 0.18s;
+  }
+  .type-chip.selected { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .send-btn {
+    width:100%; padding:16px; border-radius:14px;
+    background:var(--navy); color:#fff;
+    border:none; cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700;
+    transition: background 0.18s;
+  }
+  .send-btn:hover { background:var(--navy-light); }
+
+  /* ── VERIFY MODAL ── */
+  .verify-input-area {
+    display:flex; flex-direction:column; gap:14px; margin-bottom:20px;
+  }
+  .verify-input-area input {
+    width:100%; padding:14px 16px;
+    border:1.5px solid var(--border); border-radius:14px;
+    font-family:'DM Sans',sans-serif; font-size:15px;
+    letter-spacing:2px; outline:none; color:var(--text);
+    transition: border-color 0.18s;
+  }
+  .verify-input-area input:focus { border-color:var(--navy); }
+  .verify-result {
+    border-radius:16px; padding:18px;
+    display:none; margin-bottom:16px;
+  }
+  .verify-result.found { background:#dcfce7; border:1.5px solid #86efac; }
+  .verify-result.not-found { background:#fef2f2; border:1.5px solid #fca5a5; }
+  .verify-result h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .verify-result p { font-size:13px; color:var(--muted); }
+
+  /* ── DISMISS ── */
+  .dismiss-row { display:flex; justify-content:flex-end; margin-bottom:8px; }
+  .dismiss-btn {
+    background:rgba(255,255,255,0.15); border:none; border-radius:10px;
+    padding:6px 14px; color:#fff; cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600;
+  }
+
+  /* ── FLOATING ACTION ── */
+  .fab {
+    position:fixed; bottom:28px; right:20px;
+    width:56px; height:56px; border-radius:18px;
+    background:var(--gold); color:var(--navy);
+    border:none; cursor:pointer; font-size:26px;
+    box-shadow:0 4px 20px rgba(245,166,35,0.45);
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s; z-index:90;
+  }
+  .fab:hover { transform:scale(1.08); }
+
+  .empty-state {
+    text-align:center; padding:40px 20px; color:var(--muted);
+  }
+  .empty-state .icon { font-size:48px; margin-bottom:12px; }
+  .empty-state p { font-size:14px; }
+
+  .badge-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--rose); display:inline-block;
+    animation:blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .toast {
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+    background:var(--text); color:#fff;
+    padding:12px 20px; border-radius:12px;
+    font-size:13px; font-weight:600;
+    z-index:300; opacity:0;
+    transition:opacity 0.3s;
+    pointer-events:none;
+  }
+  .toast.show { opacity:1; }
+
+  /* ── QR CODE ── */
+  .qr-section {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .qr-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 14px;
+  }
+  #parent-qr-code {
+    display: inline-block;
+    padding: 12px;
+    background: #fff;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    margin-bottom: 12px;
+  }
+  #parent-qr-code img, #parent-qr-code canvas {
+    display: block;
+    border-radius: 8px;
+  }
+  .qr-code-label {
+    font-size: 13px; color: var(--muted);
+    font-weight: 500;
+  }
+  .qr-show-btn {
+    width: 100%; padding: 13px; border-radius: 14px;
+    background: var(--navy); color: #fff;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+    transition: background 0.18s; margin-top: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .qr-show-btn:hover { background: var(--navy-light); }
+
+  /* ── QR SCANNER (Staff) ── */
+  .scanner-wrap {
+    border-radius: 18px; overflow: hidden;
+    border: 2px solid var(--border);
+    background: #000;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  #qr-reader {
+    width: 100%;
+  }
+  #qr-reader video { border-radius: 16px; }
+  .scanner-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .scanner-frame {
+    width: 160px; height: 160px;
+    border: 3px solid var(--gold);
+    border-radius: 16px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+    animation: scanPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes scanPulse {
+    0%,100% { border-color: var(--gold); box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 0 0 rgba(245,166,35,0.4); }
+    50% { border-color: var(--gold-light); box-shadow: 0 0 0 9999px rgba(0,0,0,0.45), 0 0 12px 4px rgba(245,166,35,0.5); }
+  }
+  .scan-line {
+    position: absolute;
+    width: 140px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    animation: scanLine 2s linear infinite;
+    top: 50%; margin-top: -80px;
+  }
+  @keyframes scanLine {
+    0% { transform: translateY(0px); opacity:0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(160px); opacity:0; }
+  }
+  .scan-result-box {
+    border-radius: 14px; padding: 16px;
+    margin-bottom: 14px; display: none;
+    animation: slideIn 0.3s ease;
+  }
+  .scan-result-box.ok { background: #dcfce7; border: 1.5px solid #86efac; }
+  .scan-result-box.fail { background: #fef2f2; border: 1.5px solid #fca5a5; }
+  .scan-result-box h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .scan-result-box p { font-size: 13px; color: var(--muted); }
+
+  .scan-toggle-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .scan-toggle {
+    flex: 1; padding: 11px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; text-align: center;
+    transition: all 0.18s;
+  }
+  .scan-toggle.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* QR Modal (fullscreen for parent) */
+  .qr-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,31,61,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 250;
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 24px;
+  }
+  .qr-modal-overlay.open { display: flex; }
+  .qr-modal-card {
+    background: #fff;
+    border-radius: 28px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 320px; width: 90%;
+    animation: scaleIn 0.3s ease;
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .qr-modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px; font-weight: 800;
+    color: var(--navy); margin-bottom: 6px;
+  }
+  .qr-modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  #qr-modal-code {
+    display: inline-block;
+    padding: 16px; background: #fff;
+    border-radius: 16px; border: 2px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .qr-modal-name {
+    font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+  }
+  .qr-modal-code-text {
+    font-family: monospace; font-size: 22px;
+    letter-spacing: 4px; color: var(--navy);
+    background: var(--cream); padding: 8px 16px;
+    border-radius: 10px; display: inline-block;
+    margin-top: 8px;
+  }
+  .qr-close-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: #fff; border-radius: 50%;
+    width: 48px; height: 48px;
+    font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.18s;
+  }
+  .qr-close-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── ADMIN SETUP ── */
+  .admin-section {
+    background: var(--card);
+    border-radius: 18px;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .admin-section-header {
+    padding: 16px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1.5px solid var(--border);
+    cursor: pointer;
+  }
+  .admin-section-header h3 { font-size: 15px; font-weight: 700; display:flex; align-items:center; gap:8px; }
+  .admin-section-body { padding: 16px 18px; }
+  .form-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .form-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-field label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    color: var(--muted); text-transform: uppercase;
+    display: block; margin-bottom: 5px;
+  }
+  .form-field input, .form-field select {
+    width: 100%; padding: 11px 13px;
+    border: 1.5px solid var(--border); border-radius: 11px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    color: var(--text); outline: none; background: var(--cream);
+    transition: border-color 0.18s;
+  }
+  .form-field input:focus, .form-field select:focus { border-color: var(--navy); background: #fff; }
+  .add-btn {
+    width: 100%; padding: 12px; border-radius: 12px;
+    background: var(--navy); color: #fff;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+    transition: background 0.18s; margin-top: 4px;
+  }
+  .add-btn:hover { background: var(--navy-light); }
+  .add-btn.secondary {
+    background: transparent; color: var(--navy);
+    border: 1.5px solid var(--navy);
+  }
+  .add-btn.secondary:hover { background: var(--navy); color: #fff; }
+  .family-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    animation: slideIn 0.25s ease;
+  }
+  .family-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .family-avatar {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0; font-weight: 700;
+    font-family: 'Fraunces', serif;
+  }
+  .family-details { flex: 1; }
+  .family-details strong { font-size: 14px; font-weight: 700; color: var(--text); }
+  .family-details span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .family-code {
+    font-family: monospace; font-size: 13px; font-weight: 700;
+    color: var(--navy); background: var(--cream);
+    padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .del-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: #fef2f2; color: #dc2626;
+    border: none; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.18s;
+  }
+  .del-btn:hover { background: #dc2626; color: #fff; }
+  .school-name-display {
+    font-family: 'Fraunces', serif;
+    font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    margin-left: 6px;
+  }
+  .setup-badge {
+    background: var(--rose); color: #fff;
+    border-radius: 20px; padding: 3px 9px;
+    font-size: 11px; font-weight: 700;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  .export-row { display: flex; gap: 10px; margin-top: 12px; }
+  .export-btn {
+    flex: 1; padding: 11px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--cream);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text); cursor: pointer; text-align: center;
+    transition: all 0.18s;
+  }
+  .export-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .import-note {
+    font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5;
+    background: #f0f4ff; border-radius: 10px; padding: 10px 12px;
+  }
+
+  /* ── CONTACT CARDS ── */
+  .contact-card {
+    background: var(--card);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+  .contact-card-header {
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .contact-avatar {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--navy); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-size: 17px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .contact-info { flex: 1; }
+  .contact-info strong { font-size: 14px; font-weight: 700; display: block; }
+  .contact-info span { font-size: 12px; color: var(--muted); }
+  .contact-expand { color: var(--muted); font-size: 18px; transition: transform 0.2s; }
+  .contact-expand.open { transform: rotate(90deg); }
+  .contact-card-body {
+    padding: 0 16px 14px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .contact-card-body.open { display: block; }
+  .contact-detail-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .contact-detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .contact-detail-row .icon { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; }
+  .contact-detail-row .val { font-size: 13px; color: var(--text); flex: 1; word-break: break-all; }
+  .contact-action-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .contact-btn {
+    flex: 1; padding: 10px 8px; border-radius: 11px;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all 0.18s;
+  }
+  .contact-btn.call { background: #dcfce7; color: #15803d; }
+  .contact-btn.call:hover { background: #15803d; color: #fff; }
+  .contact-btn.sms { background: #dbeafe; color: #1d4ed8; }
+  .contact-btn.sms:hover { background: #1d4ed8; color: #fff; }
+  .contact-btn.email { background: #fef3c7; color: #b45309; }
+  .contact-btn.email:hover { background: #b45309; color: #fff; }
+  .no-contact { color: var(--muted); font-size: 12px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- ══ LANDING ══ -->
+<div id="landing" class="screen active">
+  <div class="logo-mark">🏫</div>
+  <h1 class="app-title">SafePass</h1>
+  <p class="app-sub" id="landing-school-name">School Pickup & Drop-off System</p>
+  <div class="role-cards">
+    <div class="role-card" onclick="showScreen('staff')">
+      <div class="role-icon staff">👩‍💼</div>
+      <div class="role-info">
+        <h3>Staff Portal</h3>
+        <p>Manage queue, verify IDs &amp; send alerts</p>
+      </div>
+      <span class="role-arrow">›</span>
+    </div>
+    <div class="role-card" onclick="showScreen('parent')">
+      <div class="role-icon parent">👨‍👧</div>
+      <div class="role-info">
+        <h3>Parent Portal</h3>
+        <p>Check your position &amp; receive updates</p>
+      </div>
+      <span class="role-arrow">›</span>
+    </div>
+    <div class="role-card" onclick="showScreen('admin')" style="border-color:rgba(245,166,35,0.35);">
+      <div class="role-icon" style="background:rgba(245,166,35,0.15);">⚙️</div>
+      <div class="role-info">
+        <h3 style="color:#fff;">Admin Setup</h3>
+        <p>Add families, students &amp; pickup codes</p>
+      </div>
+      <span class="role-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STAFF SCREEN ══ -->
+<div id="staff" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('landing')">‹</button>
+    <span class="nav-title">Staff Dashboard</span>
+    <span class="nav-badge"><span class="badge-dot"></span> Live</span>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="staffTab(this,'queue-tab')">🚗 Queue</button>
+    <button class="tab-btn" onclick="staffTab(this,'verify-tab')">🪪 Verify</button>
+    <button class="tab-btn" onclick="staffTab(this,'notify-tab')">📢 Alerts</button>
+  </div>
+
+  <!-- Queue Tab -->
+  <div id="queue-tab" class="content">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num gold" id="stat-waiting">7</div><div class="stat-label">Waiting</div></div>
+      <div class="stat-card"><div class="stat-num mint" id="stat-done">14</div><div class="stat-label">Released</div></div>
+      <div class="stat-card"><div class="stat-num rose" id="stat-flag">1</div><div class="stat-label">Flagged</div></div>
+    </div>
+
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Search by name or vehicle…" oninput="filterQueue(this.value)" id="queue-search">
+    </div>
+    <div class="filter-chips">
+      <div class="chip active" onclick="setQueueFilter(this,'all')">All</div>
+      <div class="chip" onclick="setQueueFilter(this,'waiting')">Waiting</div>
+      <div class="chip" onclick="setQueueFilter(this,'verified')">Verified</div>
+      <div class="chip" onclick="setQueueFilter(this,'flagged')">Flagged</div>
+    </div>
+
+    <div class="queue-list" id="queue-list"></div>
+  </div>
+
+  <!-- Verify Tab -->
+  <div id="verify-tab" class="content" style="display:none;">
+    <div class="scan-toggle-row">
+      <button class="scan-toggle active" onclick="setVerifyMode(this,'scan')">📷 Scan QR</button>
+      <button class="scan-toggle" onclick="setVerifyMode(this,'manual')">⌨️ Enter Code</button>
+    </div>
+
+    <!-- Scanner Mode -->
+    <div id="scan-mode">
+      <div class="scan-result-box" id="scan-result-box">
+        <h4 id="scan-result-title"></h4>
+        <p id="scan-result-detail"></p>
+      </div>
+      <div class="scanner-wrap">
+        <div id="qr-reader"></div>
+        <div class="scanner-overlay">
+          <div class="scanner-frame">
+            <div class="scan-line"></div>
+          </div>
+        </div>
+      </div>
+      <button class="send-btn" id="start-scan-btn" onclick="toggleScanner()">▶ Start Camera Scanner</button>
+    </div>
+
+    <!-- Manual Mode -->
+    <div id="manual-mode" style="display:none;">
+      <p class="section-label">Enter Pickup Code</p>
+      <div class="verify-input-area">
+        <input type="text" id="verify-code" placeholder="Enter pickup code (e.g. A4821)" maxlength="8"
+          style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+        <button class="send-btn" onclick="verifyID()">Verify ID</button>
+      </div>
+      <div class="verify-result" id="verify-result">
+        <h4 id="verify-name"></h4>
+        <p id="verify-detail"></p>
+      </div>
+    </div>
+
+    <p class="section-label">Recent Verifications</p>
+    <div id="recent-verify-list"></div>
+  </div>
+
+  <!-- Notify Tab -->
+  <div id="notify-tab" class="content" style="display:none;">
+    <div class="scan-toggle-row">
+      <button class="scan-toggle active" onclick="alertsTab(this,'broadcast-panel')">📢 Broadcast</button>
+      <button class="scan-toggle" onclick="alertsTab(this,'contacts-panel')">📋 Contacts</button>
+    </div>
+
+    <!-- Broadcast Panel -->
+    <div id="broadcast-panel">
+      <p class="section-label">Send to All Parents</p>
+      <div style="background:var(--card);border-radius:18px;padding:18px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:20px;">
+        <div class="modal-type-row">
+          <div class="type-chip selected" onclick="selectType(this,'info')" id="type-info">ℹ️ Info</div>
+          <div class="type-chip" onclick="selectType(this,'warn')" id="type-warn">⚠️ Delay</div>
+          <div class="type-chip" onclick="selectType(this,'danger')" id="type-danger">🚨 Urgent</div>
+        </div>
+        <textarea id="staff-alert-msg" placeholder="Type your message to all parents…"></textarea>
+        <button class="send-btn" onclick="sendStaffAlert()">📣 Send to All Parents</button>
+      </div>
+      <p class="section-label">Recent Alerts</p>
+      <div class="notif-list" id="staff-notif-list"></div>
+    </div>
+
+    <!-- Contacts Panel -->
+    <div id="contacts-panel" style="display:none;">
+      <div class="search-box" style="margin-bottom:12px;">
+        <span>🔍</span>
+        <input type="text" placeholder="Search families…" oninput="filterContacts(this.value)">
+      </div>
+      <div id="contact-list"></div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openAnnounce()" title="Quick announce">📣</button>
+</div>
+
+<!-- ══ PARENT SCREEN ══ -->
+<div id="parent" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('landing')">‹</button>
+    <span class="nav-title">Parent Portal</span>
+    <div class="dismiss-row" style="margin:0 0 0 auto;">
+      <button class="dismiss-btn" onclick="refreshQueue()">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="parentTab(this,'pass-tab')">🎫 My Pass</button>
+    <button class="tab-btn" onclick="parentTab(this,'kids-tab')">👧 Students</button>
+    <button class="tab-btn" onclick="parentTab(this,'palerts-tab')">🔔 Alerts <span id="alert-count" style="background:var(--rose);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px;">3</span></button>
+  </div>
+
+  <!-- Pass Tab -->
+  <div id="pass-tab" class="content">
+    <div class="pass-card">
+      <div class="pass-label">Your Queue Position</div>
+      <div class="pass-queue" id="parent-queue-num">3</div>
+      <div class="pass-desc" id="parent-queue-desc">Estimated wait: ~6 minutes</div>
+      <div class="pass-student">
+        <div class="pass-student-name">Emma &amp; Liam Johnson</div>
+        <div class="pass-student-grade">Grade 3 &amp; Grade 5 · Pickup</div>
+      </div>
+      <div class="pass-id">
+        <div class="pass-id-code">A4821</div>
+        <div class="pass-verified-badge">✓ Verified</div>
+      </div>
+    </div>
+    <div class="qr-section">
+      <div class="qr-label">📱 Your Pickup QR Code</div>
+      <div id="parent-qr-code"></div>
+      <div class="qr-code-label">Show this to staff for instant verification</div>
+      <button class="qr-show-btn" onclick="openQRModal()">
+        <span>⛶</span> Show Fullscreen QR
+      </button>
+    </div>
+    <div class="action-grid">
+      <div class="action-card" onclick="showToast('Notifying staff you are here…')">
+        <div class="icon">🚗</div>
+        <h4>I've Arrived</h4>
+        <p>Notify staff you're in the car line</p>
+      </div>
+      <div class="action-card" onclick="showToast('Running late message sent!')">
+        <div class="icon">⏱️</div>
+        <h4>Running Late</h4>
+        <p>Alert school of a delay</p>
+      </div>
+      <div class="action-card" onclick="showToast('Delegate added!')">
+        <div class="icon">👤</div>
+        <h4>Add Delegate</h4>
+        <p>Authorize another adult for pickup</p>
+      </div>
+      <div class="action-card" onclick="showToast('Staff notified!')">
+        <div class="icon">📞</div>
+        <h4>Contact Staff</h4>
+        <p>Send a message to front office</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Students Tab -->
+  <div id="kids-tab" class="content" style="display:none;">
+    <p class="section-label">Your Students</p>
+    <div class="student-card">
+      <div class="student-avatar" style="background:#fef3c7;">👧</div>
+      <div class="student-info">
+        <h4>Emma Johnson</h4>
+        <p>Grade 3 · Room 12 · Ms. Rivera</p>
+      </div>
+      <span class="status-pill verified">Ready</span>
+    </div>
+    <div class="student-card">
+      <div class="student-avatar" style="background:#dbeafe;">👦</div>
+      <div class="student-info">
+        <h4>Liam Johnson</h4>
+        <p>Grade 5 · Room 24 · Mr. Patel</p>
+      </div>
+      <span class="status-pill waiting">In class</span>
+    </div>
+    <p class="section-label" style="margin-top:24px;">Authorized Pickups</p>
+    <div class="student-card">
+      <div class="student-avatar" style="background:#f3e8ff;">👩</div>
+      <div class="student-info">
+        <h4>Maria Johnson</h4>
+        <p>Mother · Primary contact</p>
+      </div>
+      <span class="status-pill verified">✓ ID on file</span>
+    </div>
+    <div class="student-card">
+      <div class="student-avatar" style="background:#ecfdf5;">👴</div>
+      <div class="student-info">
+        <h4>Robert Thompson</h4>
+        <p>Grandfather · Secondary</p>
+      </div>
+      <span class="status-pill verified">✓ ID on file</span>
+    </div>
+  </div>
+
+  <!-- Alerts Tab -->
+  <div id="palerts-tab" class="content" style="display:none;">
+    <div class="notif-list" id="parent-notif-list"></div>
+  </div>
+</div>
+
+<!-- ══ ADMIN SCREEN ══ -->
+<div id="admin" class="screen">
+  <div class="top-nav">
+    <button class="back-btn" onclick="showScreen('landing')">‹</button>
+    <span class="nav-title">⚙️ Admin Setup</span>
+    <span id="unsaved-badge" class="setup-badge" style="display:none;">Unsaved</span>
+  </div>
+  <div class="content" style="padding-bottom:40px;">
+
+    <!-- School Info -->
+    <p class="section-label">School Information</p>
+    <div class="admin-section">
+      <div class="admin-section-body">
+        <div class="form-row">
+          <div class="form-field">
+            <label>School Name</label>
+            <input type="text" id="cfg-school-name" placeholder="e.g. Lincoln Elementary School" oninput="markUnsaved()">
+          </div>
+          <div class="form-row-inline">
+            <div class="form-field">
+              <label>Dismissal Time</label>
+              <input type="time" id="cfg-dismissal-time" oninput="markUnsaved()">
+            </div>
+            <div class="form-field">
+              <label>Grace Period (min)</label>
+              <input type="number" id="cfg-grace" placeholder="15" min="0" max="60" oninput="markUnsaved()">
+            </div>
+          </div>
+        </div>
+        <button class="add-btn" onclick="saveSchoolInfo()">💾 Save School Info</button>
+      </div>
+    </div>
+
+    <!-- Add Family -->
+    <p class="section-label">Add Family / Pickup Record</p>
+    <div class="admin-section">
+      <div class="admin-section-body">
+        <div class="form-row">
+          <div class="form-field">
+            <label>Family / Guardian Name</label>
+            <input type="text" id="new-family" placeholder="e.g. Johnson Family">
+          </div>
+          <div class="form-field">
+            <label>Student Name(s) &amp; Grade(s)</label>
+            <input type="text" id="new-student" placeholder="e.g. Emma Gr.3, Liam Gr.5">
+          </div>
+          <div class="form-row-inline">
+            <div class="form-field">
+              <label>Vehicle Description</label>
+              <input type="text" id="new-vehicle" placeholder="e.g. White Subaru">
+            </div>
+            <div class="form-field">
+              <label>License Plate</label>
+              <input type="text" id="new-plate" placeholder="e.g. ABC-1234" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+            </div>
+          </div>
+          <div class="form-row-inline">
+            <div class="form-field">
+              <label>Parent Phone</label>
+              <input type="tel" id="new-phone" placeholder="e.g. 555-867-5309">
+            </div>
+            <div class="form-field">
+              <label>Parent Email</label>
+              <input type="email" id="new-email" placeholder="e.g. parent@email.com">
+            </div>
+          </div>
+          <div class="form-row-inline">
+            <div class="form-field">
+              <label>Pickup Code <span style="font-weight:400;text-transform:none;letter-spacing:0;">(auto or custom)</span></label>
+              <input type="text" id="new-code" placeholder="Auto-generate" maxlength="8" style="text-transform:uppercase;font-family:monospace;letter-spacing:2px;" oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <div class="form-field">
+              <label>Priority</label>
+              <select id="new-priority">
+                <option value="false">Standard</option>
+                <option value="true">⭐ Priority</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="add-btn" onclick="addFamily()">＋ Add Family</button>
+        <div class="import-note">💡 <strong>Tip:</strong> Give each family their unique Pickup Code. They enter it in the Parent Portal to get their QR pass.</div>
+      </div>
+    </div>
+
+    <!-- Family List -->
+    <p class="section-label">Registered Families (<span id="family-count">0</span>)</p>
+    <div class="admin-section">
+      <div class="admin-section-body" id="family-list-admin" style="padding:0 18px;">
+        <div class="empty-state" style="padding:24px 0;">
+          <div class="icon">👨‍👩‍👧</div>
+          <p>No families added yet</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export / Reset -->
+    <p class="section-label">Data Management</p>
+    <div class="admin-section">
+      <div class="admin-section-body">
+        <div class="export-row">
+          <button class="export-btn" onclick="exportData()">⬇️ Export CSV</button>
+          <button class="export-btn" onclick="clearAllData()" style="color:#dc2626;">🗑️ Clear All Data</button>
+        </div>
+        <div class="import-note">Data is saved in your browser. Use <strong>Export CSV</strong> to back it up or share with another staff member.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ ANNOUNCE MODAL ══ -->
+<div class="modal-overlay" id="announce-modal" onclick="closeAnnounce(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Quick Announcement</h3>
+    <div class="modal-type-row">
+      <div class="type-chip selected" onclick="selectType(this,'info')" data-modal>ℹ️ Info</div>
+      <div class="type-chip" onclick="selectType(this,'warn')" data-modal>⚠️ Delay</div>
+      <div class="type-chip" onclick="selectType(this,'danger')" data-modal>🚨 Urgent</div>
+    </div>
+    <textarea id="modal-alert-msg" placeholder="Type a quick message to all parents…"></textarea>
+    <button class="send-btn" onclick="sendModalAlert()">📣 Broadcast Now</button>
+  </div>
+</div>
+
+<!-- ══ QR FULLSCREEN MODAL ══ -->
+<div class="qr-modal-overlay" id="qr-modal">
+  <div class="qr-modal-card">
+    <div class="qr-modal-title">SafePass QR</div>
+    <div class="qr-modal-sub">Show this to the staff member at pickup</div>
+    <div id="qr-modal-code"></div>
+    <div class="qr-modal-name">Maria Johnson</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Pickup for: Emma & Liam Johnson</div>
+    <div class="qr-modal-code-text">A4821</div>
+  </div>
+  <button class="qr-close-btn" onclick="closeQRModal()">✕</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ QR CODE GENERATION ══
+const PARENT_CODE = 'A4821';
+const PARENT_QR_DATA = JSON.stringify({ code: PARENT_CODE, name: 'Maria Johnson', students: 'Emma & Liam Johnson' });
+
+function generateParentQR(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.innerHTML = '';
+  try {
+    new QRCode(el, {
+      text: PARENT_QR_DATA,
+      width: 160, height: 160,
+      colorDark: '#0f1f3d',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  } catch(e) { el.innerHTML = '<p style="color:var(--muted);font-size:12px;">QR unavailable</p>'; }
+}
+
+function openQRModal() {
+  document.getElementById('qr-modal').classList.add('open');
+  generateParentQR('qr-modal-code');
+}
+function closeQRModal() {
+  document.getElementById('qr-modal').classList.remove('open');
+}
+
+// ══ QR SCANNER ══
+let html5QrCode = null;
+let scannerRunning = false;
+
+function setVerifyMode(btn, mode) {
+  document.querySelectorAll('.scan-toggle').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('scan-mode').style.display = mode === 'scan' ? 'block' : 'none';
+  document.getElementById('manual-mode').style.display = mode === 'manual' ? 'block' : 'none';
+  if (mode === 'manual' && scannerRunning) stopScanner();
+}
+
+async function toggleScanner() {
+  if (scannerRunning) { stopScanner(); return; }
+  const btn = document.getElementById('start-scan-btn');
+  btn.textContent = '⏹ Stop Scanner';
+  btn.style.background = '#dc2626';
+  try {
+    html5QrCode = new Html5Qrcode('qr-reader');
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 12, qrbox: { width: 200, height: 200 } },
+      (decodedText) => { handleScannedQR(decodedText); },
+      () => {}
+    );
+    scannerRunning = true;
+  } catch(err) {
+    showToast('📷 Camera access denied or unavailable');
+    btn.textContent = '▶ Start Camera Scanner';
+    btn.style.background = '';
+    // Demo mode: simulate a scan after 2s
+    simulateScan();
+  }
+}
+
+function simulateScan() {
+  showToast('📷 Demo mode: simulating scan…');
+  setTimeout(() => {
+    handleScannedQR(JSON.stringify({ code: 'A4821', name: 'Maria Johnson', students: 'Emma & Liam Johnson' }));
+  }, 2000);
+}
+
+async function stopScanner() {
+  if (html5QrCode && scannerRunning) {
+    try { await html5QrCode.stop(); } catch(e) {}
+    html5QrCode = null;
+  }
+  scannerRunning = false;
+  const btn = document.getElementById('start-scan-btn');
+  if (btn) { btn.textContent = '▶ Start Camera Scanner'; btn.style.background = ''; }
+}
+
+function handleScannedQR(raw) {
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { data = { code: raw }; }
+  const code = (data.code || raw).trim().toUpperCase();
+  const found = idMap[code];
+  const box = document.getElementById('scan-result-box');
+  const title = document.getElementById('scan-result-title');
+  const detail = document.getElementById('scan-result-detail');
+  box.style.display = 'block';
+  if (found && found.ok) {
+    box.className = 'scan-result-box ok';
+    title.textContent = '✅ Verified — ' + found.name;
+    detail.textContent = `Student: ${found.student} · Vehicle: ${found.vehicle}`;
+    recentVerifications.unshift({ code, name: found.name, time: 'Just now', ok: true });
+    showToast('✅ QR Verified: ' + found.name);
+  } else {
+    box.className = 'scan-result-box fail';
+    title.textContent = '❌ Not Verified';
+    detail.textContent = found ? 'This ID is flagged. Do not release students.' : 'Code not found. Check with parent.';
+    recentVerifications.unshift({ code, name: 'Unknown', time: 'Just now', ok: false });
+    showToast('⚠️ QR Verification failed');
+  }
+  recentVerifications = recentVerifications.slice(0, 5);
+  renderRecentVerify();
+  if (scannerRunning) stopScanner();
+}
+
+// ══ STORAGE & ADMIN ══
+const STORAGE_KEY = 'safepass_data';
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function saveData() {
+  const data = {
+    schoolName: document.getElementById('cfg-school-name')?.value || '',
+    dismissalTime: document.getElementById('cfg-dismissal-time')?.value || '',
+    grace: document.getElementById('cfg-grace')?.value || '15',
+    families: registeredFamilies
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  markSaved();
+}
+
+function markUnsaved() {
+  const b = document.getElementById('unsaved-badge');
+  if (b) b.style.display = 'inline-block';
+}
+function markSaved() {
+  const b = document.getElementById('unsaved-badge');
+  if (b) b.style.display = 'none';
+  showToast('✅ Saved!');
+}
+
+let registeredFamilies = [];
+let nextFamilyId = 100;
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function addFamily() {
+  const name    = document.getElementById('new-family').value.trim();
+  const student = document.getElementById('new-student').value.trim();
+  const vehicle = document.getElementById('new-vehicle').value.trim();
+  const plate   = document.getElementById('new-plate').value.trim();
+  const phone   = document.getElementById('new-phone').value.trim();
+  const email   = document.getElementById('new-email').value.trim();
+  const codeRaw = document.getElementById('new-code').value.trim().toUpperCase();
+  const priority= document.getElementById('new-priority').value === 'true';
+
+  if (!name || !student) { showToast('Please enter family and student name'); return; }
+  const code = codeRaw || generateCode();
+
+  if (registeredFamilies.find(f => f.code === code)) {
+    showToast('⚠️ That code is already used. Try another.'); return;
+  }
+
+  const family = { id: nextFamilyId++, name, student, vehicle: vehicle||'Not specified', plate: plate||'—', phone: phone||'', email: email||'', code, priority, status:'waiting' };
+  registeredFamilies.push(family);
+
+  syncFamiliesToApp();
+  saveData();
+  renderFamilyList();
+
+  ['new-family','new-student','new-vehicle','new-plate','new-phone','new-email','new-code'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-priority').value = 'false';
+  showToast(`✅ Added: ${name} · Code: ${code}`);
+}
+
+function deleteFamily(id) {
+  registeredFamilies = registeredFamilies.filter(f => f.id !== id);
+  syncFamiliesToApp();
+  saveData();
+  renderFamilyList();
+  showToast('Family removed');
+}
+
+function syncFamiliesToApp() {
+  // Rebuild queueData from registeredFamilies
+  queueData = registeredFamilies.map(f => ({
+    id: f.id, name: f.name, vehicle: f.vehicle, plate: f.plate,
+    code: f.code, status: f.status || 'waiting',
+    priority: f.priority, student: f.student
+  }));
+  // Rebuild idMap
+  registeredFamilies.forEach(f => {
+    idMap[f.code] = { name: f.name, student: f.student, vehicle: `${f.vehicle} (${f.plate})`, ok: true };
+  });
+  renderQueue();
+  document.getElementById('family-count').textContent = registeredFamilies.length;
+}
+
+function renderFamilyList() {
+  const el = document.getElementById('family-list-admin');
+  document.getElementById('family-count').textContent = registeredFamilies.length;
+  if (!registeredFamilies.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px 0;"><div class="icon">👨‍👩‍👧</div><p>No families added yet</p></div>';
+    return;
+  }
+  el.innerHTML = registeredFamilies.map(f => `
+    <div class="family-row">
+      <div class="family-avatar">${f.name.charAt(0)}</div>
+      <div class="family-details">
+        <strong>${f.name}${f.priority ? ' ⭐' : ''}</strong>
+        <span>👤 ${f.student}</span>
+        <span>🚗 ${f.vehicle} · ${f.plate}</span>
+        ${f.phone ? `<span>📞 ${f.phone}</span>` : ''}
+        ${f.email ? `<span>✉️ ${f.email}</span>` : ''}
+      </div>
+      <div class="family-code">${f.code}</div>
+      <button class="del-btn" onclick="deleteFamily(${f.id})">✕</button>
+    </div>
+  `).join('');
+  renderContactList();
+}
+
+function saveSchoolInfo() {
+  const name = document.getElementById('cfg-school-name').value.trim();
+  if (name) {
+    document.getElementById('landing-school-name').textContent = name;
+    document.querySelectorAll('.school-name-display').forEach(el => el.textContent = name);
+  }
+  saveData();
+}
+
+function exportData() {
+  if (!registeredFamilies.length) { showToast('No families to export'); return; }
+  const rows = [['Family Name','Student(s)','Vehicle','Plate','Phone','Email','Pickup Code','Priority']];
+  registeredFamilies.forEach(f => rows.push([f.name, f.student, f.vehicle, f.plate, f.phone||'', f.email||'', f.code, f.priority ? 'Yes' : 'No']));
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'safepass-families.csv';
+  a.click();
+  showToast('📥 CSV exported!');
+}
+
+function clearAllData() {
+  if (!confirm('Clear ALL registered families and school settings? This cannot be undone.')) return;
+  registeredFamilies = [];
+  localStorage.removeItem(STORAGE_KEY);
+  syncFamiliesToApp();
+  renderFamilyList();
+  showToast('🗑️ All data cleared');
+}
+
+function initFromStorage() {
+  const data = loadData();
+  if (!data) return;
+  if (data.schoolName) {
+    document.getElementById('cfg-school-name').value = data.schoolName;
+    document.getElementById('landing-school-name').textContent = data.schoolName;
+  }
+  if (data.dismissalTime) document.getElementById('cfg-dismissal-time').value = data.dismissalTime;
+  if (data.grace) document.getElementById('cfg-grace').value = data.grace;
+  if (data.families && data.families.length) {
+    registeredFamilies = data.families;
+    nextFamilyId = Math.max(...registeredFamilies.map(f => f.id)) + 1;
+    syncFamiliesToApp();
+    renderFamilyList();
+  }
+}
+
+// ══ CONTACTS ══
+function alertsTab(btn, panelId) {
+  document.querySelectorAll('#notify-tab .scan-toggle').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('broadcast-panel').style.display = panelId === 'broadcast-panel' ? 'block' : 'none';
+  document.getElementById('contacts-panel').style.display = panelId === 'contacts-panel' ? 'block' : 'none';
+  if (panelId === 'contacts-panel') renderContactList();
+}
+
+function renderContactList(search) {
+  const el = document.getElementById('contact-list');
+  if (!el) return;
+  let families = registeredFamilies;
+  if (search) families = families.filter(f =>
+    f.name.toLowerCase().includes(search.toLowerCase()) ||
+    (f.phone && f.phone.includes(search)) ||
+    (f.email && f.email.toLowerCase().includes(search.toLowerCase()))
+  );
+  if (!families.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">${registeredFamilies.length ? '🔍' : '👨‍👩‍👧'}</div><p>${registeredFamilies.length ? 'No matching families' : 'Add families in Admin Setup to see contacts here'}</p></div>`;
+    return;
+  }
+  el.innerHTML = families.map((f, i) => `
+    <div class="contact-card">
+      <div class="contact-card-header" onclick="toggleContact(${i})">
+        <div class="contact-avatar">${f.name.charAt(0)}</div>
+        <div class="contact-info">
+          <strong>${f.name}${f.priority ? ' ⭐' : ''}</strong>
+          <span>👤 ${f.student}</span>
+        </div>
+        <span class="contact-expand" id="cexp-${i}">›</span>
+      </div>
+      <div class="contact-card-body" id="cbody-${i}">
+        ${f.phone ? `
+        <div class="contact-detail-row">
+          <span class="icon">📞</span>
+          <span class="val">${f.phone}</span>
+        </div>` : ''}
+        ${f.email ? `
+        <div class="contact-detail-row">
+          <span class="icon">✉️</span>
+          <span class="val">${f.email}</span>
+        </div>` : ''}
+        <div class="contact-detail-row">
+          <span class="icon">🚗</span>
+          <span class="val">${f.vehicle} · ${f.plate}</span>
+        </div>
+        <div class="contact-detail-row">
+          <span class="icon">🔑</span>
+          <span class="val" style="font-family:monospace;font-weight:700;letter-spacing:2px;">${f.code}</span>
+        </div>
+        ${(!f.phone && !f.email) ? `<p class="no-contact" style="padding:10px 0;">No contact info on file. Edit in Admin Setup.</p>` : ''}
+        <div class="contact-action-btns">
+          ${f.phone ? `<a href="tel:${f.phone.replace(/\D/g,'')}" class="contact-btn call">📞 Call</a>` : ''}
+          ${f.phone ? `<a href="sms:${f.phone.replace(/\D/g,'')}" class="contact-btn sms">💬 Text</a>` : ''}
+          ${f.email ? `<a href="mailto:${f.email}" class="contact-btn email">✉️ Email</a>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleContact(i) {
+  const body = document.getElementById(`cbody-${i}`);
+  const exp  = document.getElementById(`cexp-${i}`);
+  const open = body.classList.toggle('open');
+  exp.classList.toggle('open', open);
+}
+
+function filterContacts(val) { renderContactList(val); }
+
+// ══ STATE ══
+let currentQueueFilter = 'all';
+let selectedAlertType = 'info';
+let queueData = [
+  { id:1, name:'Thompson Family', vehicle:'Blue Honda Odyssey', plate:'ABC-1234', code:'T7291', status:'waiting', priority:false, student:'Jake Thompson, Gr.4' },
+  { id:2, name:'Rodriguez Family', vehicle:'Red Toyota Sienna', plate:'XYZ-5678', code:'R3847', status:'verified', priority:true, student:'Sofia Rodriguez, Gr.2' },
+  { id:3, name:'Johnson Family', vehicle:'White Subaru', plate:'DEF-9012', code:'A4821', status:'verified', priority:false, student:'Emma & Liam Johnson' },
+  { id:4, name:'Williams Family', vehicle:'Black Tesla Y', plate:'GHI-3456', code:'W9923', status:'flagged', priority:false, student:'Aiden Williams, Gr.1' },
+  { id:5, name:'Chen Family', vehicle:'Silver Minivan', plate:'JKL-7890', code:'C5512', status:'waiting', priority:false, student:'Lily Chen, Gr.3' },
+  { id:6, name:'Patel Family', vehicle:'Gray Camry', plate:'MNO-1234', code:'P8801', status:'waiting', priority:false, student:'Aryan Patel, Gr.5' },
+  { id:7, name:'Davis Family', vehicle:'Green SUV', plate:'PQR-5678', code:'D3390', status:'waiting', priority:false, student:'Maya Davis, Gr.2' },
+];
+
+let notifications = [
+  { type:'warn', icon:'⚠️', title:'Car line delay', body:'Traffic backup on Oak Street is causing a 5-minute delay. Please have patience.', time:'2 min ago' },
+  { type:'success', icon:'✅', title:'Pickup complete', body:'Emma & Liam Johnson have been released to their authorized guardian.', time:'8 min ago' },
+  { type:'info', icon:'ℹ️', title:'Weather advisory', body:'Light rain expected. Please ensure students have jackets. Dismissal will proceed as normal.', time:'22 min ago' },
+];
+
+let recentVerifications = [
+  { code:'T7291', name:'Jake Thompson', time:'3 min ago', ok:true },
+  { code:'W9923', name:'Aiden Williams', time:'11 min ago', ok:false },
+  { code:'R3847', name:'Sofia Rodriguez', time:'15 min ago', ok:true },
+];
+
+// ══ NAVIGATION ══
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='staff') { renderQueue(); renderStaffNotifs(); renderRecentVerify(); }
+  if(id==='parent') { renderParentNotifs(); setTimeout(() => generateParentQR('parent-qr-code'), 200); }
+  if(id==='admin') { renderFamilyList(); }
+  if(id==='landing' && scannerRunning) stopScanner();
+}
+
+function staffTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['queue-tab','verify-tab','notify-tab'].forEach(t => {
+    document.getElementById(t).style.display = (t===tabId) ? 'block' : 'none';
+  });
+}
+
+function parentTab(btn, tabId) {
+  document.querySelectorAll('#parent .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['pass-tab','kids-tab','palerts-tab'].forEach(t => {
+    document.getElementById(t).style.display = (t===tabId) ? 'block' : 'none';
+  });
+}
+
+// ══ QUEUE ══
+function renderQueue(filter, search) {
+  filter = filter || currentQueueFilter;
+  search = search || '';
+  const list = document.getElementById('queue-list');
+  let data = queueData;
+  if(filter !== 'all') data = data.filter(q => q.status === filter);
+  if(search) data = data.filter(q =>
+    q.name.toLowerCase().includes(search.toLowerCase()) ||
+    q.vehicle.toLowerCase().includes(search.toLowerCase()) ||
+    q.plate.toLowerCase().includes(search.toLowerCase())
+  );
+  updateStats();
+  if(!data.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🎉</div><p>No vehicles in this category</p></div>';
+    return;
+  }
+  list.innerHTML = data.map((q,i) => `
+    <div class="queue-item" id="qi-${q.id}" style="animation-delay:${i*0.06}s">
+      <div class="queue-num ${q.priority?'priority':''}">${i+1}</div>
+      <div class="queue-info">
+        <div class="queue-name">${q.name}</div>
+        <div class="queue-sub">${q.vehicle} · ${q.plate}</div>
+        <div class="queue-sub" style="margin-top:2px;font-size:11px;">👤 ${q.student}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <span class="status-pill ${q.status}">${q.status.charAt(0).toUpperCase()+q.status.slice(1)}</span>
+        <div class="queue-actions">
+          <button class="q-btn approve" title="Release" onclick="releaseVehicle(${q.id})">✓</button>
+          <button class="q-btn flag" title="Flag" onclick="flagVehicle(${q.id})">⚑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  document.getElementById('stat-waiting').textContent = queueData.filter(q=>q.status==='waiting').length;
+  document.getElementById('stat-flag').textContent = queueData.filter(q=>q.status==='flagged').length;
+}
+
+function releaseVehicle(id) {
+  const item = queueData.find(q=>q.id===id);
+  if(!item) return;
+  item.status = 'released';
+  const el = document.getElementById(`qi-${id}`);
+  if(el) { el.style.opacity='0'; el.style.transform='translateX(40px)'; el.style.transition='all 0.3s'; }
+  setTimeout(()=>{ queueData = queueData.filter(q=>q.id!==id); renderQueue(); document.getElementById('stat-done').textContent = +document.getElementById('stat-done').textContent+1; },300);
+  showToast(`✓ Released: ${item.name}`);
+}
+
+function flagVehicle(id) {
+  const item = queueData.find(q=>q.id===id);
+  if(!item) return;
+  item.status = item.status==='flagged' ? 'waiting' : 'flagged';
+  renderQueue();
+  showToast(item.status==='flagged' ? `⚑ Flagged: ${item.name}` : `Unflagged: ${item.name}`);
+}
+
+function filterQueue(val) { renderQueue(currentQueueFilter, val); }
+function setQueueFilter(el, f) {
+  document.querySelectorAll('.filter-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentQueueFilter = f;
+  renderQueue(f, document.getElementById('queue-search').value);
+}
+
+// ══ VERIFY ══
+const idMap = {
+  'T7291':{ name:'Jake Thompson', student:'Jake Thompson, Gr.4', vehicle:'Blue Honda Odyssey', ok:true },
+  'R3847':{ name:'Sofia Rodriguez', student:'Sofia Rodriguez, Gr.2', vehicle:'Red Toyota Sienna', ok:true },
+  'A4821':{ name:'Maria Johnson', student:'Emma & Liam Johnson', vehicle:'White Subaru Outback', ok:true },
+  'W9923':{ name:'Unknown / Not on record', student:'—', vehicle:'Black Tesla Y', ok:false },
+  'C5512':{ name:'David Chen', student:'Lily Chen, Gr.3', vehicle:'Silver Minivan', ok:true },
+};
+
+function verifyID() {
+  const code = document.getElementById('verify-code').value.trim().toUpperCase();
+  const res = document.getElementById('verify-result');
+  const nameEl = document.getElementById('verify-name');
+  const detailEl = document.getElementById('verify-detail');
+  if(!code){ showToast('Please enter a pickup code'); return; }
+  const found = idMap[code];
+  res.className = 'verify-result ' + (found && found.ok ? 'found' : 'not-found');
+  res.style.display = 'block';
+  if(found && found.ok) {
+    nameEl.textContent = '✅ ' + found.name;
+    detailEl.textContent = `Student: ${found.student} · Vehicle: ${found.vehicle}`;
+    // Add to recent
+    recentVerifications.unshift({ code, name:found.name, time:'Just now', ok:true });
+  } else {
+    nameEl.textContent = '❌ ID Not Verified';
+    detailEl.textContent = found ? 'This ID is flagged. Do not release students.' : 'Code not found in system. Please check with parent.';
+    recentVerifications.unshift({ code, name:'Unknown', time:'Just now', ok:false });
+  }
+  recentVerifications = recentVerifications.slice(0,5);
+  renderRecentVerify();
+  showToast(found && found.ok ? '✅ ID Verified' : '⚠️ Verification failed');
+}
+
+function renderRecentVerify() {
+  const el = document.getElementById('recent-verify-list');
+  el.innerHTML = recentVerifications.map(v=>`
+    <div class="student-card" style="margin-bottom:10px;">
+      <div class="student-avatar" style="background:${v.ok?'#dcfce7':'#fef2f2'};font-size:16px;">${v.ok?'✅':'❌'}</div>
+      <div class="student-info">
+        <h4 style="font-size:14px;">${v.name}</h4>
+        <p>Code: ${v.code} · ${v.time}</p>
+      </div>
+      <span class="status-pill ${v.ok?'verified':'flagged'}">${v.ok?'OK':'Failed'}</span>
+    </div>
+  `).join('');
+}
+
+// ══ ALERTS ══
+let alertType = 'info';
+
+function selectType(el, type) {
+  const parent = el.closest('.modal-type-row') || el.parentElement;
+  parent.querySelectorAll('.type-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  alertType = type;
+}
+
+function sendStaffAlert() {
+  const msg = document.getElementById('staff-alert-msg').value.trim();
+  if(!msg){ showToast('Please type a message first'); return; }
+  pushNotification(alertType, msg);
+  document.getElementById('staff-alert-msg').value='';
+  showToast('📣 Alert sent to all parents!');
+  renderStaffNotifs();
+}
+
+function sendModalAlert() {
+  const msg = document.getElementById('modal-alert-msg').value.trim();
+  if(!msg){ showToast('Please type a message first'); return; }
+  pushNotification(alertType, msg);
+  document.getElementById('modal-alert-msg').value='';
+  closeAnnounce();
+  showToast('📣 Alert broadcasted!');
+  renderStaffNotifs();
+  document.getElementById('alert-count').textContent = notifications.length;
+}
+
+const typeMap = {
+  info:{ icon:'ℹ️', title:'Information' },
+  warn:{ icon:'⚠️', title:'Delay Notice' },
+  danger:{ icon:'🚨', title:'Urgent Alert' },
+  success:{ icon:'✅', title:'Notice' },
+};
+
+function pushNotification(type, body) {
+  notifications.unshift({ type, icon:typeMap[type].icon, title:typeMap[type].title, body, time:'Just now' });
+  renderParentNotifs();
+  document.getElementById('alert-count').textContent = notifications.length;
+}
+
+function renderStaffNotifs() {
+  const el = document.getElementById('staff-notif-list');
+  el.innerHTML = notifications.slice(0,5).map(n=>renderNotif(n, false)).join('');
+}
+
+function renderParentNotifs() {
+  const el = document.getElementById('parent-notif-list');
+  el.innerHTML = notifications.map(n=>renderNotif(n, true)).join('');
+}
+
+function renderNotif(n, parentMode) {
+  return `<div class="notif-item ${n.type}" style="animation-delay:0.05s">
+    <div class="notif-header">
+      <span class="notif-icon">${n.icon}</span>
+      <span class="notif-title">${n.title}</span>
+      <span class="notif-time">${n.time}</span>
+    </div>
+    <div class="notif-body">${n.body}</div>
+    ${parentMode ? `<div class="notif-actions"><button class="notif-btn secondary" onclick="this.closest('.notif-item').style.opacity='0.4'">Dismiss</button></div>` : ''}
+  </div>`;
+}
+
+// ══ PARENT ══
+function refreshQueue() {
+  const num = document.getElementById('parent-queue-num');
+  const cur = parseInt(num.textContent);
+  if(cur > 1) {
+    num.textContent = cur - 1;
+    document.getElementById('parent-queue-desc').textContent = `Estimated wait: ~${(cur-1)*2} minutes`;
+    showToast('Queue updated ↑');
+  } else {
+    showToast('🎉 You\'re next! Pull forward now.');
+  }
+}
+
+// ══ MODAL ══
+function openAnnounce() { document.getElementById('announce-modal').classList.add('open'); }
+function closeAnnounce(e) {
+  if(!e || e.target===document.getElementById('announce-modal'))
+    document.getElementById('announce-modal').classList.remove('open');
+}
+
+// ══ TOAST ══
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ══ INIT ══
+initFromStorage();
+renderQueue();
+renderStaffNotifs();
+renderRecentVerify();
+renderParentNotifs();
+setTimeout(() => generateParentQR('parent-qr-code'), 300);
+</script>
+</body>
+</html>
